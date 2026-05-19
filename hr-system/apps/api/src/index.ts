@@ -1,14 +1,20 @@
-import Fastify from "fastify";
-import cors from "@fastify/cors";
+import { createApp } from "./app";
+import { env } from "./core/config/env";
 
-const app = Fastify({ logger: true });
+async function start() {
+    const app = await createApp();
 
-app.register(cors);
+    try {
+        await app.listen({
+            port: env.PORT,
+            host: "0.0.0.0",
+        });
 
-app.get("/health", async () => {
-    return { status: "ok", service: "hr-api" };
-});
+        console.log(`API running on port ${env.PORT}`);
+    } catch (error) {
+        app.log.error(error);
+        process.exit(1);
+    }
+}
 
-app.listen({ port: 4000, host: "0.0.0.0" }, () => {
-    console.log("API running on http://localhost:4000");
-});
+start();
