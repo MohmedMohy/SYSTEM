@@ -13,3 +13,13 @@ model Job {
   location  String?
   createdAt DateTime @default(now())
 }
+
+model Template {
+  id          String   @id @default(cuid())
+  name        String
+  platform    String
+  content     String
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
