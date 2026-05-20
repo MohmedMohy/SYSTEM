@@ -8,6 +8,7 @@
     "lint": "turbo run lint"
   },
   "devDependencies": {
-    "turbo": "^2.5.4"
+    "turbo": "^2.5.4",
+    "typescript": "5.8.2"
   }
 }

@@ -5,10 +5,11 @@
     "moduleResolution": "Bundler",
     "strict": true,
     "skipLibCheck": true,
-    "baseUrl": "."
-  },
-  "references": [
-    { "path": "apps/api" },
-    { "path": "packages/db" }
-  ]
+    "baseUrl": ".",
+    "paths": {
+      "@hr/db": ["packages/db/src"],
+      "@hr/api": ["apps/api/src"]
+    },
+    "ignoreDeprecations": "6.0"
+  }
 }
