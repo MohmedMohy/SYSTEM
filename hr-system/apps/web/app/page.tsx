@@ -1,14 +1,44 @@
-import { CreateJobForm } from "../../web/src/components/create-job-form";
-import { JobsList } from "../../web/src/components/jobs-list";
+import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 
-import { getJobs } from "../../web/src/services/jobs.service";
+import { CreateJobForm } from "../src/components/create-job-form";
+import { JobsList } from "../src/components/jobs-list";
+import { getJobs } from "../src/services/jobs.service";
+import { DashboardShell } from "../src/layout/dashboard-shell";
+import { Job } from "../src/types/jobs.types";
 
+/**
+ * AUTH GUARD (Server Component safe)
+ */
+async function checkAuth(): Promise<string> {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("token")?.value;
+
+  if (!token) {
+    redirect("/");
+  }
+
+  return token;
+}
+
+/**
+ * PAGE
+ */
 export default async function JobsPage() {
-  const jobs = await getJobs();
+  await checkAuth();
+
+  let jobs: Job[] = [];
+
+  try {
+    jobs = await getJobs();
+  } catch (err) {
+    console.error("Jobs fetch failed:", err);
+    jobs = [];
+  }
 
   return (
-    <main className="min-h-screen bg-[#0b1120] p-10">
-      <div className="mx-auto max-w-7xl space-y-10">
+    <DashboardShell>
+      <div className="space-y-8">
         <div>
           <h1 className="text-4xl font-bold text-white">
             Jobs Dashboard
@@ -23,6 +53,6 @@ export default async function JobsPage() {
 
         <JobsList jobs={jobs} />
       </div>
-    </main>
+    </DashboardShell>
   );
 }

@@ -14,13 +14,15 @@ model User {
 }
 
 model Job {
-  id        String   @id @default(cuid())
-  title     String
-  company   String?
-  location  String?
-  createdAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  title       String
+  department  String?
+  location    String?
+  type        String
+  description String
+  status      String   @default("ACTIVE")
+  createdAt   DateTime @default(now())
 }
-
 model Template {
   id          String   @id @default(cuid())
   name        String

@@ -1,13 +1,21 @@
-import Fastify, { FastifyInstance } from "fastify";
+import Fastify from "fastify";
+import jwt from "@fastify/jwt";
 
 import { loggerConfig } from "./core/server/logger";
 import { registerCors } from "./core/plugins/cors";
 import { errorHandlerPlugin } from "./core/plugins/error-handler";
+import { jwtOptions } from "./core/utils/jwt";
 
 import { healthRoute } from "./routes/health.route";
 import { jobsRoutes } from "./modules/jobs/jobs.route";
 import { templatesRoutes } from "./modules/templates/templates.routes";
 import { authRoutes } from "./modules/auth/auth.routes";
+
+declare module "fastify" {
+    interface FastifyInstance {
+        authenticate: any;
+    }
+}
 
 export async function createApp() {
     const app = Fastify({
@@ -17,38 +25,68 @@ export async function createApp() {
     // ======================
     // Core Plugins
     // ======================
+
     await errorHandlerPlugin(app);
+
     await registerCors(app);
 
+    await app.register(jwt, jwtOptions);
+
     // ======================
-    // Routes
+    // Auth Guard Decorator
     // ======================
+
+    app.decorate(
+        "authenticate",
+        async function (req: any, reply: any) {
+            try {
+                await req.jwtVerify();
+            } catch (error) {
+                return reply.code(401).send({
+                    success: false,
+                    error: {
+                        type: "UNAUTHORIZED",
+                        message: "Unauthorized access",
+                    },
+                });
+            }
+        }
+    );
+
+    // ======================
+    // Public Routes
+    // ======================
+
     await app.register(healthRoute);
 
     await app.register(authRoutes, {
         prefix: "/auth",
     });
 
-    await app.register(jobsRoutes, {
-        prefix: "/jobs",
-    });
+    // ======================
+    // Protected Routes
+    // ======================
 
-    await app.register(templatesRoutes, {
-        prefix: "/templates",
+    await app.register(async function (protectedApp) {
+        protectedApp.addHook(
+            "preHandler",
+            protectedApp.authenticate
+        );
+
+        await protectedApp.register(jobsRoutes, {
+            prefix: "/jobs",
+        });
+
+        await protectedApp.register(templatesRoutes, {
+            prefix: "/templates",
+        });
     });
 
     // ======================
-    // Auth Decorator (Guard ready)
+    // Debug Routes
     // ======================
-    app.decorate("authenticate", async (req: any, reply: any) => {
-        try {
-            await req.jwtVerify();
-        } catch (err) {
-            return reply.code(401).send({
-                message: "Unauthorized",
-            });
-        }
-    });
+
+    console.log(app.printRoutes());
 
     return app;
 }

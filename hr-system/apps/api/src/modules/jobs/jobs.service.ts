@@ -1,14 +1,34 @@
-import { CreateJobInput } from "./jobs.schema";
-import { JobsRepository } from "./jobs.repository";
+import { prisma } from "../../lib/prisma";
 
-export class JobsService {
-    private repository = new JobsRepository();
+export const createJob = async (data: any) => {
+    return prisma.job.create({
+        data,
+    });
+};
 
-    async createJob(data: CreateJobInput) {
-        return this.repository.create(data);
-    }
+export const getJobs = async () => {
+    return prisma.job.findMany({
+        orderBy: {
+            createdAt: "desc",
+        },
+    });
+};
 
-    async getJobs() {
-        return this.repository.findAll();
-    }
-}
+export const getJobById = async (id: string) => {
+    return prisma.job.findUnique({
+        where: { id },
+    });
+};
+
+export const updateJob = async (id: string, data: any) => {
+    return prisma.job.update({
+        where: { id },
+        data,
+    });
+};
+
+export const deleteJob = async (id: string) => {
+    return prisma.job.delete({
+        where: { id },
+    });
+};
